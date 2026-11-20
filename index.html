@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div class="demo-ribbon">LIVE DEMO — sample hotel, branding, rooms &amp; prices fully customizable</div>
+<div class="demo-ribbon">ADVANCED LIVE DEMO — booking engine · guest booking management · admin panel · demo payments — branding, rooms &amp; prices fully customizable</div>
 
 <header class="nav" id="top">
   <a class="brand" href="#top" aria-label="Azure Grand home">
@@ -27,6 +27,8 @@
     <a href="#gallery">Gallery</a>
     <a href="#reviews">Reviews</a>
     <a href="#contact">Contact</a>
+    <a href="#" id="manageLink">Manage Booking</a>
+    <a href="#" id="adminLink">Admin</a>
   </nav>
   <div class="nav-cta">
     <a class="nav-phone" href="tel:+18005550142">☎ +1 (800) 555-0142</a>
@@ -167,17 +169,113 @@
           <textarea id="bkNotes" rows="2" placeholder="Early check-in, high floor, airport pickup…"></textarea>
         </label>
         <div class="price-box" id="priceBox"></div>
-        <button type="submit" class="btn btn-gold btn-block">Confirm Reservation →</button>
-        <p class="fineprint center">Demo checkout — no payment is taken. The full version supports card payments &amp; payment gateways.</p>
+        <button type="submit" class="btn btn-gold btn-block">Continue to Payment →</button>
+        <p class="fineprint center">Next step: secure payment (demo mode — no real charge).</p>
+      </form>
+    </div>
+
+    <div id="paymentStep" hidden>
+      <h3>Payment</h3>
+      <div class="modal-room" id="paySummary"></div>
+      <form id="paymentForm">
+        <div class="form-grid">
+          <label class="span2">Card number
+            <input type="text" id="cardNum" inputmode="numeric" required placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" />
+          </label>
+          <label>Name on card<input type="text" id="cardName" required placeholder="e.g. John Smith" /></label>
+          <label>Expiry<input type="text" id="cardExp" inputmode="numeric" required placeholder="MM/YY" value="12/28" /></label>
+          <label>CVC<input type="text" id="cardCvc" inputmode="numeric" required placeholder="123" maxlength="4" value="123" /></label>
+        </div>
+        <button type="submit" class="btn btn-gold btn-block" id="payBtn">Pay →</button>
+        <button type="button" class="btn btn-outline btn-block" id="payBack">← Back to details</button>
+        <p class="fineprint center" style="margin-top:.7rem">🔒 Demo payment — use the pre-filled test card, nothing is charged. The production version connects Stripe / PayPal / local gateways.</p>
       </form>
     </div>
 
     <div id="confirmStep" hidden>
       <div class="confirm-icon">✓</div>
       <h3>Reservation Confirmed!</h3>
-      <p class="center">Thank you — your booking is locked in. A confirmation email would be sent to the guest in the full version.</p>
+      <p class="center">Thank you — your booking is saved and paid. Use <strong>Manage Booking</strong> in the menu anytime to view or cancel it, and watch it appear in the <strong>Admin</strong> panel.</p>
       <div class="confirm-box" id="confirmBox"></div>
       <button class="btn btn-gold btn-block" id="confirmDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE BOOKING MODAL -->
+<div class="modal-backdrop" id="manageBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="manageTitle">
+    <button class="modal-close" id="manageClose" aria-label="Close">✕</button>
+    <h3 id="manageTitle">Manage Your Booking</h3>
+    <form id="manageForm">
+      <div class="form-grid">
+        <label>Booking reference<input type="text" id="mgRef" required placeholder="e.g. AGH-XXXXXX" /></label>
+        <label>Email used for booking<input type="email" id="mgEmail" required placeholder="you@email.com" /></label>
+      </div>
+      <button type="submit" class="btn btn-gold btn-block">Find My Booking</button>
+    </form>
+    <div id="manageResult" style="margin-top:1.1rem"></div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-view" id="adminView" hidden>
+  <div class="admin-wrap">
+    <div class="admin-head">
+      <h2>Azure Grand — <em>Admin Panel</em></h2>
+      <div class="admin-head-btns">
+        <button class="btn btn-outline" id="adminBack">← Back to Website</button>
+        <button class="btn btn-outline" id="adminLogout">Log out</button>
+      </div>
+    </div>
+
+    <div class="admin-card" id="adminLogin">
+      <h3>Staff Login</h3>
+      <p class="fineprint" style="margin-bottom:1rem">Demo credentials — username: <strong style="color:var(--gold2)">admin</strong> · password: <strong style="color:var(--gold2)">admin123</strong></p>
+      <form id="adminLoginForm">
+        <div class="form-grid">
+          <label>Username<input type="text" id="adUser" required placeholder="admin" /></label>
+          <label>Password<input type="password" id="adPass" required placeholder="••••••••" /></label>
+        </div>
+        <p class="manage-msg err" id="loginErr" hidden>Wrong username or password — try the demo credentials above.</p>
+        <button type="submit" class="btn btn-gold btn-block">Log In →</button>
+      </form>
+    </div>
+
+    <div id="adminDash" hidden>
+      <div class="stat-grid" id="statCards"></div>
+
+      <div class="admin-card">
+        <h3>📊 Bookings by Room Type</h3>
+        <div id="adminChart"></div>
+      </div>
+
+      <div class="admin-card">
+        <h3>🛎️ All Reservations</h3>
+        <div class="table-scroll">
+          <table class="admin-table">
+            <thead><tr><th>Ref</th><th>Guest</th><th>Room</th><th>Dates</th><th>Party</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="adminBookings"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>🏷️ Rooms, Prices &amp; Inventory</h3>
+        <div class="table-scroll">
+          <table class="admin-table">
+            <thead><tr><th>Room</th><th>Price / night ($)</th><th>Units (inventory)</th><th></th></tr></thead>
+            <tbody id="adminRooms"></tbody>
+          </table>
+        </div>
+        <p class="fineprint">Changes apply instantly to the live website — try editing a price, then check the Rooms section.</p>
+      </div>
+
+      <div class="admin-card">
+        <h3>⚙️ Demo Data</h3>
+        <p class="fineprint" style="margin-bottom:.8rem">This demo stores bookings in the browser so you can test the full flow. The production version stores everything in a secure server database with email confirmations, reports and staff roles.</p>
+        <button class="btn btn-danger" id="resetData">Reset Demo Data</button>
+      </div>
     </div>
   </div>
 </div>
